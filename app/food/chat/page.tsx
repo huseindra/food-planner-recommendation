@@ -1,7 +1,9 @@
 "use client"
 import { ResponseSection } from '@/app/home/components/RestaurantRecommendation';
+import useFetch from '@/hook/useFetch';
+import { headers } from 'next/headers';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Message {
   type: string;
@@ -21,6 +23,24 @@ interface ResponseItem {
   image: string;
   rating: number;
   price?: string | number;
+}
+
+interface OrderRecommendationItem {
+  _id: string;
+  category: string[];
+  description: string;
+  discount_price: number;
+  display: string;
+  is_discount: boolean;
+  merchant_area: string;
+  merchant_id: string;
+  merchant_name: string;
+  pictures: string[];
+  price: number;
+  product: string;
+  product_id: string;
+  rating: number;
+  review_count: number;
 }
 
 
@@ -64,6 +84,71 @@ const ChatComponent = () => {
 
   const [input, setInput] = useState('');
   const [matchedItems, setMatchedItems] = useState<ResponseItem[]>([]);
+  const [sessionId, setSessionId] = useState('')
+  const [suggetions, setSuggetions] = useState([])
+  const [isFirstSuggetion, setIsFirSuggetion] = useState(false)
+  const [orderRecommendation, setOrderRecommendation] = useState<OrderRecommendationItem[]>([])
+
+  async function getSessionId() {
+    const response = await useFetch('/chat', {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }).then((res) => {
+      setSessionId(res.session_id)
+    })
+
+    return response
+  }
+
+  async function sendPrompt(sessionId: string, msg: string){
+    const data = await useFetch(`/chat/${sessionId}`, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        "message": msg
+      })
+    })
+    .then((res) => {
+      if(!isFirstSuggetion){
+        setSuggetions(res.suggestions)
+        setIsFirSuggetion(true)
+      } else {
+        // Empty suggetion to show order plan
+        setSuggetions([])
+      }
+    })
+
+    return data;
+  }
+
+  async function planOrder(msg: string){
+    const data = await useFetch(`/order/plan`, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        "message": msg
+      })
+    })
+    .then((res) => {
+      setOrderRecommendation(res)
+    })
+
+    return data;
+  }
+
+  useEffect(() => {
+    getSessionId()
+  }, [])
+
+  useEffect(() => {
+    if(sessionId) sendPrompt(sessionId, '')
+  }, [sessionId])
 
   const responses: Record<string, string> = {
     bantu: 'What do you need.',
@@ -95,6 +180,9 @@ const ChatComponent = () => {
         setMessages(prevMessages => [...prevMessages, ...dummyResponse]);
       }, 1000);
     }
+
+    // sendPrompt(sessionId, newMessages.length > 0 ? newMessages[newMessages.length - 1].text : "")
+    planOrder(newMessages.length > 0 ? newMessages[newMessages.length - 1].text : "")
   };
 
 
@@ -119,7 +207,7 @@ const ChatComponent = () => {
         </div>
       </header>
       <div className="flex-grow">
-        <div className="px-4 pb-4 pt-2 rounded-lg">
+        {/* <div className="px-4 pb-4 pt-2 rounded-lg">
           <h1 className="text-2xl font-bold">Welcome to the Meal Recommendation Assistant!</h1>
           {messages.map((message:any, index:any) => (
             <div
@@ -135,25 +223,15 @@ const ChatComponent = () => {
               </span>
             </div>
           ))}
-        </div>
-        {matchedItems.length > 0 && (
-          <ResponseSection title="Rekomendasi restoran untukmu" items={matchedItems} />
+        </div> */}
+        {orderRecommendation.length > 0 && (
+          <ResponseSection title="Rekomendasi restoran untukmu" items={orderRecommendation} />
         )}
+        
         <div className="flex px-4 space-x-2 mb-4 text-sm">
-          <button className="flex-grow bg-gray-300 text-black p-4 rounded-lg">
-            What are some healthy breakfast options today?
-          </button>
-          <button className="flex-grow bg-gray-300 text-black p-4 rounded-lg">
-            What are the top lunch recommendations?
-          </button>
-        </div>
-        <div className="flex px-4  space-x-2 mb-4 text-sm">
-          <button className="flex-grow bg-gray-300 text-black p-4 rounded-lg">
-            Suggest a dinner for 42 guests
-          </button>
-          <button className="flex-grow bg-gray-300 text-black p-4 rounded-lg">
-            What are some trending meals today?
-          </button>
+          {suggetions.map((item) => <button className="flex-grow bg-gray-300 text-black p-4 rounded-lg" onClick={() => sendPrompt(sessionId, item)}>
+            {item}
+          </button>)}
         </div>
       </div>
       <div className="sticky bottom-0 left-0 right-0 bg-gray-100 p-4 border rounded-md border-gray-300">
