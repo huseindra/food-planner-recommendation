@@ -1,43 +1,106 @@
 "use client"
+import { ResponseSection } from '@/app/home/components/RestaurantRecommendation';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+interface Message {
+  type: string;
+  text: string;
+}
+
+// datetime: Date
+// name: string
+// price: number
+// rating: number
+// rating_count: number
+// pictures: string[]
+
+interface ResponseItem {
+  id: number;
+  name: string;
+  image: string;
+  rating: number;
+  price?: string | number;
+}
+
+
+const responseOption = [
+  {
+    id: 1,
+    name: 'Martabak Angkasa',
+    image: '/assets/images/food/martabak-angkasa.webp',
+    rating: 4.8,
+    price: 10000,
+  },
+  {
+    id: 2,
+    name: 'Burger Bangor - Lebak Bulus',
+    image: '/assets/images/food/burger-bangor.jpg',
+    rating: 4.8,
+    price: '50% off',
+  },
+  {
+    id: 3,
+    name: 'Selamat Pagi',
+    image: '/assets/images/food/selamat-pagi.png',
+    rating: 4.7,
+    discount: '50% off',
+  },
+];
+
 const ChatComponent = () => {
   const router = useRouter();
-  const [messages, setMessages] = useState([
-    { type: 'response', text: 'Welcome to the Meal Recommendation Assistant!' },
+  const [messages, setMessages] = useState<Message[]>([
+    { type: 'hi', text: 'Welcome to the Meal Recommendation Assistant!' },
     {
-      type: 'response',
+      type: 'meal',
       text: 'I am here to help you choose the perfect meal, keeping you healthy and satisfied.',
     },
     {
-      type: 'response',
+      type: 'what',
       text: 'Let me know your preferences, and I will recommend the best options for breakfast, lunch, or dinner.',
     },
   ]);
 
   const [input, setInput] = useState('');
+  const [matchedItems, setMatchedItems] = useState<ResponseItem[]>([]);
 
-  const handleSendMessage = async () => {
+  const responses: Record<string, string> = {
+    bantu: 'What do you need.',
+    // Add more keyword-response pairs as needed
+    help: 'How can I assist you?',
+    breakfast: 'Here are some healthy breakfast options.',
+    lunch: 'These are the top lunch recommendations.',
+    dinner: 'Suggesting a dinner for 42 guests.',
+    trending: 'Here are some trending meals today.'
+  };
+
+  const handleSendMessage = () => {
     if (input.trim() === '') return;
 
     const newMessages = [...messages, { type: 'user', text: input }];
     setMessages(newMessages);
     setInput('');
 
-    // Dummy API response
-    setTimeout(() => {
-      const dummyResponse = {
-        type: 'response',
-        text: 'This is a dummy response from the API.',
-      };
-      setMessages((prevMessages) => [...prevMessages, dummyResponse]);
-    }, 1000);
+    const matchedItem = responseOption.find(item => item.name.toLowerCase() === input.toLowerCase());
+    if (matchedItem) {
+      // setMessages(prevMessages => [...prevMessages, { type: 'response', text: `Found: ${matchedItem.name}` }]);
+      setMatchedItems([matchedItem]);
+    } else {
+      // Simulate an API response if no matching item is found
+      setTimeout(() => {
+        const dummyResponse: Message[] = [
+          { type: 'response', text: 'This is a dummy response from the API.' },
+        ];
+        setMessages(prevMessages => [...prevMessages, ...dummyResponse]);
+      }, 1000);
+    }
   };
+
 
   return (
     <div className="max-w-sm mx-auto  bg-gray-50 min-h-screen flex flex-col">
-      <header className="flex bg-gradient-to-r from-green-400 to-green-500  items-center justify-between mb-4 px-4">
+      <header className="flex bg-gradient-to-r from-green-400 to-green-500  items-center justify-between mb-4 px-4 sticky top-0">
         <div className="flex items-center space-x-2 py-4">
           <button onClick={() => router.push('/food')} className="text-white">
             <svg
@@ -56,9 +119,9 @@ const ChatComponent = () => {
         </div>
       </header>
       <div className="flex-grow">
-        <div className="p-4 rounded-lg mb-4">
+        <div className="px-4 pb-4 pt-2 rounded-lg">
           <h1 className="text-2xl font-bold">Welcome to the Meal Recommendation Assistant!</h1>
-          {messages.map((message, index) => (
+          {messages.map((message:any, index:any) => (
             <div
               key={index}
               className={`mt-2 text-sm ${message.type === 'user' ? 'text-right' : ''}`}
@@ -73,6 +136,9 @@ const ChatComponent = () => {
             </div>
           ))}
         </div>
+        {matchedItems.length > 0 && (
+          <ResponseSection title="Rekomendasi restoran untukmu" items={matchedItems} />
+        )}
         <div className="flex px-4 space-x-2 mb-4 text-sm">
           <button className="flex-grow bg-gray-300 text-black p-4 rounded-lg">
             What are some healthy breakfast options today?

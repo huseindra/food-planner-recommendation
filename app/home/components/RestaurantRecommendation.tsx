@@ -1,5 +1,6 @@
 // components/RestaurantRecommendations.tsx
 "use client"
+import { formatIDR } from '@/library/format-idr';
 import React from 'react';
 
 const restaurants = [
@@ -104,6 +105,45 @@ const Card: React.FC<{ item: any }> = ({ item }) => {
         </span>
       </div>
       <span className="text-xs text-green-600">{item.discount}</span>
+    </div>
+  );
+};
+
+export const ResponseSection: React.FC<{ title: string; items: any[] }> = ({ title, items }) => {
+  return (
+    <div className="mb-4 px-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold">{title}</h2>
+      </div>
+      <div className="flex space-x-4 overflow-x-auto">
+        {items.map((item) => (
+          <CardResponse key={item.id} item={item} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// name: 'Martabak Angkasa',
+// image: '/assets/images/food/martabak-angkasa.webp',
+// rating: 4.8,
+// price: 10000,
+
+const CardResponse: React.FC<{ item: any }> = ({ item }) => {
+  return (
+    <div className="w-60 flex-shrink-0">
+      <img src={item.image} alt={item.name} className="w-full h-32 object-cover rounded-lg mb-2" />
+      <h3 className="text-sm font-semibold truncate">{item.name}</h3>
+      <div className="flex items-center text-sm text-gray-500">
+      <span className="text-md font-bold text-green-600">{formatIDR(item.price)}</span>
+        <span className="mx-1">·</span>
+        <span className="flex items-center">
+          <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 15l-5.392 3.118 1.027-5.992L1 8.382l6.104-.89L10 2l2.896 5.492 6.104.89-4.635 3.744 1.027 5.992z" />
+          </svg>
+          {item.rating}
+        </span>
+      </div>
     </div>
   );
 };
