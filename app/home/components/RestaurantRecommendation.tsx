@@ -132,8 +132,8 @@ export const ResponseSection: React.FC<{ title: string; items: any[] }> = ({ tit
 const CardResponse: React.FC<{ item: any }> = ({ item }) => {
   return (
     <div className="w-60 flex-shrink-0">
-      <img src={item.image} alt={item.name} className="w-full h-32 object-cover rounded-lg mb-2" />
-      <h3 className="text-sm font-semibold truncate">{item.name}</h3>
+      <img src={item.pictures.length > 0 ? item.pictures[0] : ""} alt={item.product} className="w-full h-32 object-cover rounded-lg mb-2" />
+      <h3 className="text-sm font-semibold truncate">{item.product}</h3>
       <div className="flex items-center text-sm text-gray-500">
       <span className="text-md font-bold text-green-600">{formatIDR(item.price)}</span>
         <span className="mx-1">·</span>
