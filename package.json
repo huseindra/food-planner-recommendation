@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prod": "next dev -H 0.0.0.0"
+    "prod": "next dev -H 0.0.0.0 --port ${PORT-3000}"
   },
   "dependencies": {
     "react": "^18",
