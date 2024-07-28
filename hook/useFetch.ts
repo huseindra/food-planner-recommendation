@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const BASE_URL = 'http://172.16.63.88:8000'
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://172.16.63.88:8000';
 
 async function useFetch(url: string, options = {}) {
     try {
